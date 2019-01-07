@@ -7,6 +7,8 @@ import org.dom4j.io.SAXReader;
 
 import java.io.File;
 import java.sql.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by KEKE on 2019/1/4
@@ -25,7 +27,8 @@ public class MySQLConnector {
         try {
             Document document = reader.read(config);
             Element mysqlInfo = document.getRootElement().element("mysql");
-            db_url = "jdbc:mysql://"+mysqlInfo.attributeValue("url")+"/"+mysqlInfo.attributeValue("database");
+            db_url = "jdbc:mysql://"+mysqlInfo.attributeValue("url")+"/"+mysqlInfo.attributeValue("database")+
+                    "?characterEncoding=utf8&useSSL=true";
             user = mysqlInfo.attributeValue("user");
             pass = mysqlInfo.attributeValue("password");
 
@@ -64,9 +67,18 @@ public class MySQLConnector {
 
         MySQLConnector connector = new MySQLConnector();
         Statement stmt = connector.getConn().createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT * FROM test");
+        ResultSet rs = stmt.executeQuery("SELECT * FROM corpus WHERE id = 702");
         while (rs.next()){
-            System.out.println(rs.getInt("id")+" "+rs.getString("content"));
+            System.out.println(rs.getInt("id"));
+            System.out.println(rs.getString("title"));
+//            System.out.println(rs.getString("anno_content"));
+
+            Pattern p = Pattern.compile("\\[.*?\\]");//匹配中括号之内的字符
+//            Pattern p = Pattern.compile(".*?(\\.\\s)|(\\.$)|$");
+            Matcher m = p.matcher(rs.getString("anno_content"));
+            while (m.find()){
+                System.out.println(m.group());
+            }
         }
         rs.close();
         stmt.close();
